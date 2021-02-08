@@ -29,6 +29,8 @@ add_definitions(
     # These will force WebsocketPP to compile with C++11
     -D_WEBSOCKETPP_CPP11_STL_
     -D_WEBSOCKETPP_CPP11_FUNCTIONAL_
+
+    -DASIO_SEPARATE_COMPILATION # NOTE added
 )
 
 add_library(sioclient ${ALL_SRC})

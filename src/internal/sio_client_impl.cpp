@@ -22,7 +22,8 @@
 #if SIO_TLS
 // If using Asio's SSL support, you will also need to add this #include.
 // Source: http://think-async.com/Asio/asio-1.10.6/doc/asio/using.html
-// #include <asio/ssl/impl/src.hpp>
+#include <asio/ssl/impl/src.hpp>
+#include <asio/impl/src.hpp>
 #endif
 
 using std::chrono::milliseconds;
@@ -302,7 +303,7 @@ namespace sio
         if(ec || m_con.expired())
         {
             if (ec != asio::error::operation_aborted)
-                LOG("ping exit,con is expired?"<<m_con.expired()<<",ec:"<<ec.message()<<endl){};
+                LOG("ping exit,con is expired?"<<m_con.expired()<<",ec:"<<ec.message()<<endl);
             return;
         }
         packet p(packet::frame_ping);
@@ -582,7 +583,7 @@ failed:
 #if SIO_TLS
     client_impl::context_ptr client_impl::on_tls_init(connection_hdl conn)
     {
-        context_ptr ctx = context_ptr(new  asio::ssl::context(asio::ssl::context::tlsv1));
+        context_ptr ctx = context_ptr(new  asio::ssl::context(asio::ssl::context::tlsv12));//NOTE changed
         asio::error_code ec;
         ctx->set_options(asio::ssl::context::default_workarounds |
                              asio::ssl::context::no_sslv2 |
