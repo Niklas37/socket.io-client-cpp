@@ -42,7 +42,7 @@ target_include_directories(sioclient PRIVATE
 )
 
 if (CMAKE_VERSION VERSION_GREATER "3.1")
-set_property(TARGET sioclient PROPERTY CXX_STANDARD 11)
+set_property(TARGET sioclient PROPERTY CXX_STANDARD 17)
 set_property(TARGET sioclient PROPERTY CXX_STANDARD_REQUIRED ON)
 else()
 set_property(TARGET sioclient APPEND_STRING PROPERTY COMPILE_FLAGS "-std=c++11")
@@ -68,7 +68,7 @@ target_include_directories(sioclient_tls PRIVATE
 )
 
 if (CMAKE_VERSION VERSION_GREATER "3.1")
-set_property(TARGET sioclient_tls PROPERTY CXX_STANDARD 11)
+set_property(TARGET sioclient_tls PROPERTY CXX_STANDARD 17)
 set_property(TARGET sioclient_tls PROPERTY CXX_STANDARD_REQUIRED ON)
 target_link_libraries(sioclient_tls PRIVATE ${OPENSSL_LIBRARIES} )
 else()
