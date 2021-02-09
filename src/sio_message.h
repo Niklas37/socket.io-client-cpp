@@ -7,6 +7,7 @@
 #ifndef __SIO_MESSAGE_H__
 #define __SIO_MESSAGE_H__
 #include <string>
+#include <sstream>
 #include <memory>
 #include <vector>
 #include <map>
@@ -39,6 +40,68 @@ namespace sio
         }
 
         typedef std::shared_ptr<message> ptr;
+
+        std::string to_json() {
+            return to_json_recursive(*this);
+        }
+        std::string to_json_recursive(message msg) {
+            switch (msg.get_flag()) {
+                case sio::message::flag_integer:
+                    return std::to_string(get_int());
+                    break;
+                case sio::message::flag_double:
+                    return std::to_string(get_double());
+                    break;
+                case sio::message::flag_string:
+                    return "\"" + get_string() + "\"";
+                    break;
+                case sio::message::flag_binary:
+                    return "[binary data]";
+                    break;
+                case sio::message::flag_array: {
+                    std::stringstream ss_array;
+                    ss_array << '[';
+                    auto msg_array = get_vector();
+                    ss_array << to_json_recursive(*msg_array[0]);
+                    for (std::size_t i = 1; i < msg_array.size(); ++i) {
+                        ss_array << ", " << to_json_recursive(*msg_array[i]);
+                    }
+                    ss_array << ']';
+                    return ss_array.str();
+                    break;
+                }
+                case sio::message::flag_object: {
+                    std::stringstream ss_dict;
+                    ss_dict << '{';
+                    auto msg_dict = msg.get_map();
+                    std::vector<std::string> keyValues;
+                    for (auto const &[key, val] : msg_dict) {
+                        std::string value = to_json_recursive(*val);
+                        keyValues.push_back("\"" + key + "\":" + value);
+                    }
+                    std::string map_string = std::accumulate(
+                        std::begin(keyValues), std::end(keyValues),
+                        std::string(), [](std::string &ss, std::string &s) {
+                            return ss.empty() ? s : ss + ", " + s;
+                        });
+                    ss_dict << map_string;
+                    ss_dict << '}';
+                    return ss_dict.str();
+                    break;
+                }
+                case sio::message::flag_boolean: {
+                    return msg.get_bool() ? "true" : "false";
+                    break;
+                }
+                case sio::message::flag_null: {
+                    return "null";
+                    break;
+                }
+                default:
+                    return nullptr;
+                    break;
+            }
+        }
 
         virtual bool get_bool() const
         {
