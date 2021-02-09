@@ -8,6 +8,7 @@
 #define __SIO_MESSAGE_H__
 #include <string>
 #include <sstream>
+#include <numeric>
 #include <memory>
 #include <vector>
 #include <map>
