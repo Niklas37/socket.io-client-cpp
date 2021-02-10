@@ -42,66 +42,12 @@ namespace sio
 
         typedef std::shared_ptr<message> ptr;
 
-        std::string to_json() {
-            return to_json_recursive(*this);
-        }
-        std::string to_json_recursive(message msg) {
-            switch (msg.get_flag()) {
-                case sio::message::flag_integer:
-                    return std::to_string(get_int());
-                    break;
-                case sio::message::flag_double:
-                    return std::to_string(get_double());
-                    break;
-                case sio::message::flag_string:
-                    return "\"" + get_string() + "\"";
-                    break;
-                case sio::message::flag_binary:
-                    return "[binary data]";
-                    break;
-                case sio::message::flag_array: {
-                    std::stringstream ss_array;
-                    ss_array << '[';
-                    auto msg_array = get_vector();
-                    ss_array << to_json_recursive(*msg_array[0]);
-                    for (std::size_t i = 1; i < msg_array.size(); ++i) {
-                        ss_array << ", " << to_json_recursive(*msg_array[i]);
-                    }
-                    ss_array << ']';
-                    return ss_array.str();
-                    break;
-                }
-                case sio::message::flag_object: {
-                    std::stringstream ss_dict;
-                    ss_dict << '{';
-                    auto msg_dict = msg.get_map();
-                    std::vector<std::string> keyValues;
-                    for (auto const &[key, val] : msg_dict) {
-                        std::string value = to_json_recursive(*val);
-                        keyValues.push_back("\"" + key + "\":" + value);
-                    }
-                    std::string map_string = std::accumulate(
-                        std::begin(keyValues), std::end(keyValues),
-                        std::string(), [](std::string &ss, std::string &s) {
-                            return ss.empty() ? s : ss + ", " + s;
-                        });
-                    ss_dict << map_string;
-                    ss_dict << '}';
-                    return ss_dict.str();
-                    break;
-                }
-                case sio::message::flag_boolean: {
-                    return msg.get_bool() ? "true" : "false";
-                    break;
-                }
-                case sio::message::flag_null: {
-                    return "null";
-                    break;
-                }
-                default:
-                    return nullptr;
-                    break;
-            }
+        virtual std::string to_json()
+        {
+            assert(false);
+            static std::string s_empty_string;
+            s_empty_string.clear();
+            return s_empty_string;
         }
 
         virtual bool get_bool() const
@@ -185,6 +131,12 @@ namespace sio
         }
 
     public:
+
+        std::string to_json()
+        {
+            return "null";
+        }
+
         static message::ptr create()
         {
             return ptr(new null_message());
@@ -202,6 +154,12 @@ namespace sio
         }
 
     public:
+
+        std::string to_json()
+        {
+            return get_bool() ? "true" : "false";
+        }
+
         static message::ptr create(bool v)
         {
             return ptr(new bool_message(v));
@@ -223,6 +181,12 @@ namespace sio
         }
 
     public:
+
+        std::string to_json()
+        {
+            return std::to_string(get_int());
+        }
+
         static message::ptr create(int64_t v)
         {
             return ptr(new int_message(v));
@@ -248,6 +212,12 @@ namespace sio
         }
 
     public:
+
+        std::string to_json()
+        {
+            return std::to_string(get_double());
+        }
+
         static message::ptr create(double v)
         {
             return ptr(new double_message(v));
@@ -272,6 +242,12 @@ namespace sio
         {
         }
     public:
+
+        std::string to_json()
+        {
+            return "\"" + get_string() + "\"";
+        }
+
         static message::ptr create(std::string const& v)
         {
             return ptr(new string_message(v));
@@ -296,6 +272,12 @@ namespace sio
         {
         }
     public:
+
+        std::string to_json()
+        {
+            return "[binary data]";
+        }
+
         static message::ptr create(std::shared_ptr<const std::string> const& v)
         {
             return ptr(new binary_message(v));
@@ -315,6 +297,20 @@ namespace sio
         }
 
     public:
+
+        std::string to_json()
+        {
+            std::stringstream ss_array;
+            ss_array << '[';
+            auto msg_array = get_vector();
+            ss_array << msg_array[0]->to_json();
+            for (std::size_t i = 1; i < msg_array.size(); ++i) {
+                ss_array << ", " << msg_array[i]->to_json();
+            }
+            ss_array << ']';
+            return ss_array.str();
+        }
+
         static message::ptr create()
         {
             return ptr(new array_message());
@@ -408,6 +404,27 @@ namespace sio
         {
         }
     public:
+
+        std::string to_json()
+        {
+            std::stringstream ss_dict;
+            ss_dict << '{';
+            auto msg_dict = get_map();
+            std::vector<std::string> keyValues;
+            for (auto const &[key, val] : msg_dict) {
+                std::string value = val->to_json();
+                keyValues.push_back("\"" + key + "\":" + value);
+            }
+            std::string map_string = std::accumulate(
+                std::begin(keyValues), std::end(keyValues),
+                std::string(), [](std::string &ss, std::string &s) {
+                    return ss.empty() ? s : ss + ", " + s;
+                });
+            ss_dict << map_string;
+            ss_dict << '}';
+            return ss_dict.str();
+        }
+
         static message::ptr create()
         {
             return ptr(new object_message());
